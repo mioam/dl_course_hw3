@@ -166,8 +166,9 @@ def main(args):
                 output0 = discriminator(img0, label)
                 output1 = discriminator(img1, label)
                 
-                loss_d = nn.functional.binary_cross_entropy(output0,output1)
-                
+                loss0 = nn.functional.binary_cross_entropy(output0,torch.zeros(output0.shape).to(device))
+                loss1 = nn.functional.binary_cross_entropy(output1,torch.ones(output0.shape).to(device))
+                loss_d = -loss0 + loss1
                 d_optimizer.zero_grad()
                 loss_d.backward()
                 d_optimizer.step()
