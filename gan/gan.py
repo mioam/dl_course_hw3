@@ -166,9 +166,9 @@ def main(args):
                 output0 = discriminator(img0, label)
                 output1 = discriminator(img1, label)
                 
-                loss0 = torch.mean(torch.log(output0))
-                loss1 = torch.mean(torch.log(1-output1))
-                loss_d = -loss0 - loss1
+                loss0 = torch.mean(torch.log(1-output0))
+                loss1 = torch.mean(torch.log(output1))
+                loss_d = loss0 + loss1
                 d_optimizer.zero_grad()
                 loss_d.backward()
                 d_optimizer.step()
