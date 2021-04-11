@@ -144,7 +144,7 @@ def main(args):
     if args.dataset == "mnist":
         dataset = MNIST(root="../data",
                         transform=transforms.ToTensor(),  # TODO: you may want to tweak this
-                        train=not args.eval,download=False)
+                        train=not args.eval,download=True)
         dataloader = DataLoader(dataset, args.batch_size, shuffle=True, drop_last=True)
     else:
         raise NotImplementedError
