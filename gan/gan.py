@@ -170,28 +170,28 @@ def main(args):
                 loss1 = torch.mean(output1)
                 loss_d = -loss0 + loss1
                 
-                # d_optimizer.zero_grad()
-                # loss_d.backward()
-                # d_optimizer.step()
+                d_optimizer.zero_grad()
+                loss_d.backward()
+                d_optimizer.step()
 
-                # latent = rd.sample((img0.shape[0],latent_dim)).to(device)
-                # img1 = generator(latent, label)
-                # output1 = discriminator(img1, label)
-                # loss_g = -torch.mean(output1)
+                latent = rd.sample((img0.shape[0],latent_dim)).to(device)
+                img1 = generator(latent, label)
+                output1 = discriminator(img1, label)
+                loss_g = -torch.mean(output1)
 
-                # g_optimizer.zero_grad()
-                # loss_g.backward()
-                # g_optimizer.step()
+                g_optimizer.zero_grad()
+                loss_g.backward()
+                g_optimizer.step()
 
-                loss_g = -loss1
-                if loss0 < loss1:
-                    d_optimizer.zero_grad()
-                    loss_d.backward()
-                    d_optimizer.step()
-                else:
-                    g_optimizer.zero_grad()
-                    loss_g.backward()
-                    g_optimizer.step()
+                # loss_g = -loss1
+                # if loss0 < loss1:
+                #     d_optimizer.zero_grad()
+                #     loss_d.backward()
+                #     d_optimizer.step()
+                # else:
+                #     g_optimizer.zero_grad()
+                #     loss_g.backward()
+                #     g_optimizer.step()
 
                 if it % 100 == 0:
                     print('epoch: %d, iter: %d, loss0: %f, loss1: %f'%(epoch,it,loss0.item(),loss1.item()))
