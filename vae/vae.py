@@ -100,7 +100,7 @@ class CVAE(nn.Module):
         with torch.no_grad():
             # TODO: get samples from the decoder.
             y = self.decode(batch_latent, batch_label)
-            y += self.prior.sample(y.shape).to(y.device)
+            # y += self.prior.sample(y.shape).to(y.device)
             y = torch.clip(y,0,1)
         return y
 
