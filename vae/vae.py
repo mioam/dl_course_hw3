@@ -128,8 +128,7 @@ def plot(cvae, n_samples_per_class, device, name):
         x = i // 10
         y = i % 10
         m[x*28:(x+1)*28,y*28:(y+1)*28] = imgs[i,0]
-    plt.imshow(m,cmap='gray')
-    plt.imsave(name)
+    plt.imsave(name,m,cmap='gray')
 
 def KL(u1,s1):
     # print(u1.shape)
@@ -145,7 +144,7 @@ def main(args):
     if args.dataset == "mnist":
         dataset = MNIST(root="../data",
                         transform=transforms.ToTensor(),  # TODO: you may want to tweak this
-                        train=not args.eval,download=True)
+                        train=not args.eval,download=False)
         dataloader = DataLoader(dataset, args.batch_size, shuffle=True, drop_last=True)
     else:
         raise NotImplementedError
