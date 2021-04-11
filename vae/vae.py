@@ -192,6 +192,9 @@ def main(args):
                 loss.backward()
                 optimizer.step()
             plot(cvae, 10, device, '%d.jpg'%epoch)
+            if epoch % 20 == 19:
+                torch.save(cvae,'./vae/model/cvae-%d.npy'%(epoch))
+
             
     else:
         assert args.load_path is not None
