@@ -199,8 +199,9 @@ def main(args):
     else:
         assert args.load_path is not None
         checkpoint = torch.load(args.load_path, map_location=device)
-        cvae.load_state_dict(checkpoint['model'])
-        optimizer.load_state_dict(checkpoint['optimizer'])
+        cvae = checkpoint
+        # cvae.load_state_dict(checkpoint['model'])
+        # optimizer.load_state_dict(checkpoint['optimizer'])
         cvae.eval()
         samples = generate_samples(cvae, 1000, device)
         torch.save(samples, "vae_generated_samples.pt")

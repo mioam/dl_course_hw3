@@ -195,9 +195,9 @@ def main(args):
                 if it % 100 == 0:
                     print('epoch: %d, iter: %d, loss0: %f, loss1: %f'%(epoch,it,loss0.item(),loss1.item()))
             plot(generator, 10, device, '%d.jpg'%epoch)
-        if epoch % 20 == 19:
-            torch.save(generator,'./model/generator-%d.npy'%(epoch))
-            torch.save(discriminator,'./model/discriminator-%d.npy'%(epoch))
+            if epoch % 20 == 19:
+                torch.save(generator,'./model/generator-%d.npy'%(epoch))
+                torch.save(discriminator,'./model/discriminator-%d.npy'%(epoch))
 
 
     else:
