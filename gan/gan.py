@@ -166,8 +166,8 @@ def main(args):
                 output0 = discriminator(img0, label)
                 output1 = discriminator(img1, label)
                 
-                loss0 = -torch.mean(torch.log(output0))
-                loss1 = -torch.mean(torch.log(1-output1))
+                loss0 = -torch.mean(torch.log(output0+0.001))
+                loss1 = -torch.mean(torch.log(1.001-output1))
                 loss_d = loss0 + loss1
                 d_optimizer.zero_grad()
                 loss_d.backward()
@@ -176,7 +176,7 @@ def main(args):
                 latent = rd.sample((img0.shape[0],latent_dim)).to(device)
                 img1 = generator(latent, label)
                 output1 = discriminator(img1, label)
-                loss_g = -torch.mean(torch.log(output1))
+                loss_g = -torch.mean(torch.log(output1+0.001))
 
                 g_optimizer.zero_grad()
                 loss_g.backward()
