@@ -1,13 +1,16 @@
 import argparse
 import torch
+from torch._C import device
 import torch.optim as optim
 import numpy as np
 from torch import nn as nn
+from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from torchvision.datasets import MNIST
 from torchvision import transforms
 import os, time
 
+import matplotlib.pyplot as plt
 
 class CVAE(nn.Module):
     def __init__(self, img_size, label_size, latent_size, hidden_size=256):
@@ -44,7 +47,24 @@ class CVAE(nn.Module):
             nn.Linear(2 * self.hidden_size, int(np.prod(self.img_size))), nn.Sigmoid(),
         )
         # TODO: assume the distribution of reconstructed images is a Gaussian distibution. Write the log_std here.
-        self.recon_logstd = None
+        self.recon_logstd = 0
+        self.prior = torch.distributions.Normal(0, 1)
+
+    def preEncode(self, batch_img, batch_label):
+        batch_img = batch_img.reshape(batch_img.shape[0],-1)
+        a = self.enc_img_fc(batch_img)
+        b = self.enc_label_fc(batch_label)
+        c = torch.cat((a,b),1)
+        c = F.relu(c)
+        c = self.encoder(c)
+        mean = self.z_mean(c)
+        logstd = self.z_logstd(c)
+        return mean, logstd
+    
+    def getZ(self, mean, logstd):
+        z = self.prior.sample(mean.shape).to(mean.device)
+        z = mean + z * torch.exp(logstd)
+        return z
 
     def encode(self, batch_img, batch_label):
         '''
@@ -53,7 +73,9 @@ class CVAE(nn.Module):
         :return: a batch of latent code of shape (batch_size, self.latent_size)
         '''
         # TODO: compute latent z from images and labels
-        return None  # Placeholder.
+        mean, logstd = self.preEncode(batch_img, batch_label)
+        z = self.getZ(mean, logstd)
+        return z
 
     def decode(self, batch_latent, batch_label):
         '''
@@ -61,7 +83,13 @@ class CVAE(nn.Module):
         :param batch_label: a tensor of shape (batch_size, self.label_size)
         :return: reconstructed results
         '''
-        return None  # Placeholder.
+        a = self.dec_latent_fc(batch_latent)
+        b = self.dec_label_fc(batch_label)
+        c = torch.cat((a,b),1)
+        c = F.relu(c)
+        c = self.decoder(c)
+        c = c.reshape([-1]+list(self.img_size))
+        return c
 
     def sample(self, batch_latent, batch_label):
         '''
@@ -71,8 +99,10 @@ class CVAE(nn.Module):
         '''
         with torch.no_grad():
             # TODO: get samples from the decoder.
-            pass
-        return None  # Placeholder.
+            y = self.decode(batch_latent, batch_label)
+            y += self.prior.sample(y.shape).to(y.device)
+            y = torch.clip(y,0,1)
+        return y
 
 
 #########################
@@ -87,6 +117,24 @@ def generate_samples(cvae, n_samples_per_class, device):
     return samples
 #########################
 
+def plot(cvae, n_samples_per_class, device, name):
+    cvae.eval()
+    latent = torch.randn((n_samples_per_class * 10, cvae.latent_size), device=device)
+    label = torch.eye(cvae.label_size, dtype=torch.float, device=device).repeat(n_samples_per_class, 1)
+    imgs = cvae.sample(latent, label).cpu()
+    # print(imgs.shape)
+    m = np.zeros((28*10,28*n_samples_per_class))
+    for i in range(imgs.shape[0]):
+        x = i // 10
+        y = i % 10
+        m[x*28:(x+1)*28,y*28:(y+1)*28] = imgs[i,0]
+    plt.imshow(m,cmap='gray')
+    plt.imsave(name)
+
+def KL(u1,s1):
+    # print(u1.shape)
+    # print(s1.shape)
+    return torch.sum(-s1 + (torch.exp(2 * s1) + u1 ** 2) / 2,1)
 
 def main(args):
     np.random.seed(args.seed)
@@ -121,7 +169,27 @@ def main(args):
         prior = torch.distributions.Normal(0, 1)
         for epoch in range(args.num_epochs):
             # TODO: Training, logging, saving, visualization, etc.
-            pass
+            cvae.train()
+            for it, data in enumerate(dataloader):
+                imgs, labels = data
+                imgs = imgs.to(device)
+                ones = torch.sparse.torch.eye(label_dim)
+                labels =  ones.index_select(0,labels)
+                labels = labels.to(device)
+                cvae.zero_grad()
+                u, s = cvae.preEncode(imgs,labels)
+                z = cvae.getZ(u, s)
+                mean = cvae.decode(z,labels)
+                # print(((imgs - mean) ** 2).shape)
+                loss = -torch.sum((imgs - mean) ** 2 / 2,(1,2,3)) + KL(u, s)
+                # print(loss.shape)
+                loss = torch.sum(loss) / loss.shape[0]
+                if it % 100:
+                    print('epoch: %d, iter: %d, loss: %f'%(epoch,it,loss.item()))
+                loss.backward()
+                optimizer.step()
+            plot(cvae, 10, device, '%d.jpg'%epoch)
+            
     else:
         assert args.load_path is not None
         checkpoint = torch.load(args.load_path, map_location=device)
