@@ -176,7 +176,7 @@ def main(args):
                 latent = rd.sample((img0.shape[0],latent_dim)).to(device)
                 img1 = generator(latent, label)
                 output1 = discriminator(img1, label)
-                loss_g = -torch.mean(output1)
+                loss_g = torch.mean(torch.log(1-output1))
 
                 g_optimizer.zero_grad()
                 loss_g.backward()
