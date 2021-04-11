@@ -180,11 +180,14 @@ def main(args):
                 z = cvae.getZ(u, s)
                 mean = cvae.decode(z,labels)
                 # print(((imgs - mean) ** 2).shape)
-                loss = -torch.sum((imgs - mean) ** 2 / 2,(1,2,3)) + KL(u, s)
+                loss1 = torch.sum((imgs - mean) ** 2 / 2,(1,2,3))
+                loss2 = KL(u, s)
                 # print(loss.shape)
-                loss = torch.sum(loss) / loss.shape[0]
+                loss1 = torch.sum(loss1) / loss1.shape[0]
+                loss2 = torch.sum(loss2) / loss2.shape[0]
+                loss = loss1 + loss2
                 if it % 100 == 0:
-                    print('epoch: %d, iter: %d, loss: %f'%(epoch,it,loss.item()))
+                    print('epoch: %d, iter: %d, loss1: %f, loss2: %f'%(epoch,it,loss1.item(),loss2.item()))
                 loss.backward()
                 optimizer.step()
             plot(cvae, 10, device, '%d.jpg'%epoch)
