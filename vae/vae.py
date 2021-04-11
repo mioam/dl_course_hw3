@@ -192,8 +192,8 @@ def main(args):
                 loss.backward()
                 optimizer.step()
             plot(cvae, 10, device, '%d.jpg'%epoch)
-            if epoch % 20 == 19:
-                torch.save(cvae,'./vae/model/cvae-%d.npy'%(epoch))
+            if epoch % 10 == 9:
+                torch.save(cvae,'./model/cvae-%d.npy'%(epoch))
 
             
     else:
