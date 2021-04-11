@@ -128,7 +128,7 @@ def main(args):
         dataset = MNIST(root="../data",
                         transform=transforms.Compose([
                             transforms.ToTensor(),
-                            transforms.Normalize([[0.5],[0.5]])]),  # You can tweak it.
+                            transforms.Normalize([0.5],[0.5])]),  # You can tweak it.
                         train=not args.eval)
         dataloader = DataLoader(dataset, args.batch_size, shuffle=True, drop_last=True)
     else:
