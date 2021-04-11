@@ -183,7 +183,7 @@ def main(args):
                 loss = -torch.sum((imgs - mean) ** 2 / 2,(1,2,3)) + KL(u, s)
                 # print(loss.shape)
                 loss = torch.sum(loss) / loss.shape[0]
-                if it % 100:
+                if it % 100 == 0:
                     print('epoch: %d, iter: %d, loss: %f'%(epoch,it,loss.item()))
                 loss.backward()
                 optimizer.step()
