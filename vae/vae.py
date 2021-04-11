@@ -11,6 +11,7 @@ from torchvision import transforms
 import os, time
 
 import matplotlib.pyplot as plt
+import math
 
 class CVAE(nn.Module):
     def __init__(self, img_size, label_size, latent_size, hidden_size=256):
@@ -180,7 +181,7 @@ def main(args):
                 z = cvae.getZ(u, s)
                 mean = cvae.decode(z,labels)
                 # print(((imgs - mean) ** 2).shape)
-                loss1 = torch.sum((imgs - mean) ** 2 / 2,(1,2,3))
+                loss1 = torch.sum((imgs - mean) ** 2  ,(1,2,3)) / (2 * math.exp(cvae.recon_logstd))
                 loss2 = KL(u, s)
                 # print(loss.shape)
                 loss1 = torch.sum(loss1) / loss1.shape[0]

@@ -54,8 +54,8 @@ class Generator(nn.Module):
         '''
         with torch.no_grad():
             # TODO: generated images for further evaluation.
-            pass
-        return None
+            out = self.forward(z,label)
+        return out
 
 
 class Discriminator(nn.Module):
@@ -104,6 +104,18 @@ def generate_samples(generator, n_samples_per_class, device):
     return samples
 ##########################
 
+def plot(gen, n_samples_per_class, device, name):
+    gen.eval()
+    latent = torch.randn((n_samples_per_class * 10, gen.latent_dim), device=device)
+    label = torch.eye(gen.label_dim, dtype=torch.float, device=device).repeat(n_samples_per_class, 1)
+    imgs = gen.sample(latent, label).cpu()
+    # print(imgs.shape)
+    m = np.zeros((28*10,28*n_samples_per_class))
+    for i in range(imgs.shape[0]):
+        x = i // 10
+        y = i % 10
+        m[x*28:(x+1)*28,y*28:(y+1)*28] = imgs[i,0]
+    plt.imsave(name,m,cmap='gray')
 
 def main(args):
     np.random.seed(args.seed)
@@ -137,7 +149,43 @@ def main(args):
     d_optimizer = optim.Adam(discriminator.parameters(), lr=args.lr, betas=(0.5, 0.999))
     if not args.eval:
         # TODO: training, logging, saving
-        pass
+        rd = torch.distributions.Normal(0, 1)
+        for epoch in range(args.num_epochs):
+            generator.train()
+            for it, data in enumerate(dataloader):
+                img0, label = data
+                ones = torch.sparse.torch.eye(label_dim)
+                label =  ones.index_select(0,label)
+                img0, label = img0.to(device), label.to(device)
+                
+                latent = rd.sample((img0.shape[0],latent_dim)).to(device)
+                img1 = generator(latent, label)
+                output0 = discriminator(img0, label)
+                output1 = discriminator(img1, label)
+                
+                loss0 = torch.mean(output0)
+                loss1 = torch.mean(output1)
+                loss_d = -loss0 + loss1
+
+                d_optimizer.zero_grad()
+                loss_d.backward()
+                d_optimizer.step()
+
+                latent = rd.sample((img0.shape[0],latent_dim)).to(device)
+                img1 = generator(latent, label)
+                output1 = discriminator(img1, label)
+                loss_g = -torch.mean(output1)
+
+                g_optimizer.zero_grad()
+                loss_g.backward()
+                g_optimizer.step()
+                
+                if it % 100 == 0:
+                    print('epoch: %d, iter: %d, loss0: %f, loss1: %f'%(epoch,it,loss0.item(),loss1.item()))
+            plot(generator, 10, device, '%d.jpg'%epoch)
+                
+
+
     else:
         assert args.load_path is not None
         checkpoint = torch.load(args.load_path, map_location=device)
