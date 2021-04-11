@@ -55,6 +55,7 @@ class Generator(nn.Module):
         with torch.no_grad():
             # TODO: generated images for further evaluation.
             out = self.forward(z,label)
+            out = (out + 1) / 2 
         return out
 
 
@@ -125,7 +126,9 @@ def main(args):
     # Load dataset
     if args.dataset == "mnist":
         dataset = MNIST(root="../data",
-                        transform=transforms.ToTensor(),  # You can tweak it.
+                        transform=transforms.Compose([
+                            transforms.ToTensor(),
+                            transforms.Normalize([[0.5],[0.5]])]),  # You can tweak it.
                         train=not args.eval)
         dataloader = DataLoader(dataset, args.batch_size, shuffle=True, drop_last=True)
     else:
