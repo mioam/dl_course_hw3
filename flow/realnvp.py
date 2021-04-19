@@ -137,7 +137,7 @@ class CouplingLayer(nn.Module):
             z = inputs * (1 - mask)
             z = (z - t) * s
             z = z + masked_inputs
-            return z, torch.log(s).sum(-1, keepdim=True)
+            return z, -torch.log(s).sum(-1, keepdim=True)
 
         else:
             #############################################
@@ -149,7 +149,7 @@ class CouplingLayer(nn.Module):
             z = inputs * (1 - mask)
             z = z / s + t
             z = z + masked_inputs
-            return z, -torch.log(s).sum(-1, keepdim=True)
+            return z, torch.log(s).sum(-1, keepdim=True)
 
 class FlowSequential(nn.Sequential):
     """ A sequential container for flows.
