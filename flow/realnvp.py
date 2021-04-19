@@ -83,13 +83,13 @@ class Shuffle(nn.Module):
             # TODO complete code here;  x - > z
             # return z = f(x) and logdet, z has the same shape with x, logdet has the shape (batch size, 1)
             #############################################
-            return input[:,self.perm], 0
+            return inputs[:,self.perm], 0
         else:
             #############################################
             # TODO complete code here; z - > x
             # return x = f^-1(z) and logdet, x has the same shape with z, logdet has the shape (batch size, 1)
             #############################################
-            return input[:,self.inv_perm], 0
+            return inputs[:,self.inv_perm], 0
 
 class CouplingLayer(nn.Module):
     """ An implementation of a coupling layer
@@ -110,16 +110,16 @@ class CouplingLayer(nn.Module):
         ############################################
         # TODO define your scale_net and translate_net
         # m = mask.sum()
-        self.scale_net = nn.Sequential([
+        self.scale_net = nn.Sequential(
             nn.Linear(num_inputs,num_hidden),
             s_act,
             nn.Linear(num_hidden,num_inputs),
-            ])
-        self.translate_net = nn.Sequential([
+            )
+        self.translate_net = nn.Sequential(
             nn.Linear(num_inputs,num_hidden),
             t_act,
             nn.Linear(num_hidden,num_inputs),
-            ])
+            )
         ###############################################
 
     def forward(self, inputs, mode='direct'):
@@ -137,7 +137,7 @@ class CouplingLayer(nn.Module):
             z = inputs * (1 - mask)
             z = (z - t) * s
             z = z + masked_inputs
-            return z, torch.log(s).sum(axis=0)
+            return z, torch.log(s).sum(-1, keepdim=True)
 
         else:
             #############################################
@@ -149,7 +149,7 @@ class CouplingLayer(nn.Module):
             z = inputs * (1 - mask)
             z = z / s + t
             z = z + masked_inputs
-            return z, -torch.log(s).sum(axis=0)
+            return z, -torch.log(s).sum(-1, keepdim=True)
 
 class FlowSequential(nn.Sequential):
     """ A sequential container for flows.
