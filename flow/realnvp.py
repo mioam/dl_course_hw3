@@ -101,7 +101,7 @@ class CouplingLayer(nn.Module):
                  num_hidden,
                  mask,
                  s_act=nn.Tanh(),
-                 t_act=nn.ReLU()):
+                 t_act=nn.LeakyReLU()):
         super(CouplingLayer, self).__init__()
 
         self.num_inputs = num_inputs
@@ -116,11 +116,23 @@ class CouplingLayer(nn.Module):
             s_act,
             nn.Linear(num_hidden,num_hidden),
             nn.BatchNorm1d(num_hidden),
-            t_act,
+            s_act,
+            nn.Linear(num_hidden,num_hidden),
+            nn.BatchNorm1d(num_hidden),
+            s_act,
+            nn.Linear(num_hidden,num_hidden),
+            nn.BatchNorm1d(num_hidden),
+            s_act,
             nn.Linear(num_hidden,num_inputs),
             )
         self.translate_net = nn.Sequential(
             nn.Linear(num_inputs,num_hidden),
+            nn.BatchNorm1d(num_hidden),
+            t_act,
+            nn.Linear(num_hidden,num_hidden),
+            nn.BatchNorm1d(num_hidden),
+            t_act,
+            nn.Linear(num_hidden,num_hidden),
             nn.BatchNorm1d(num_hidden),
             t_act,
             nn.Linear(num_hidden,num_hidden),
