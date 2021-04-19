@@ -134,7 +134,7 @@ class CouplingLayer(nn.Module):
             ###########################################
             s = self.scale_net(masked_inputs)
             t = self.translate_net(masked_inputs)
-            z = (inputs - t) * torch.exp(s) * (1 - mask)
+            z = (inputs * torch.exp(s) + t)  * (1 - mask)
             z = z + masked_inputs
             # return z,0
             return z, (s*(1-mask)).sum(1, keepdim=True)
@@ -146,7 +146,7 @@ class CouplingLayer(nn.Module):
             ###########################################
             s = self.scale_net(masked_inputs)
             t = self.translate_net(masked_inputs)
-            z = (inputs * torch.exp(-s) + t)  * (1 - mask)
+            z = (inputs - t) * torch.exp(-s)  * (1 - mask)
             z = z + masked_inputs
             # return z, 0
             return z, -(s*(1-mask)).sum(1, keepdim=True)

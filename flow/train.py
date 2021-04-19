@@ -137,7 +137,8 @@ for module in model.modules():
 
 model.to(device)
 
-optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-6)
+# optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-6)
+optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-4)
 
 global_step = 0
 
