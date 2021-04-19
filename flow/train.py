@@ -125,6 +125,19 @@ for i in range(args.num_blocks):
         realnvp.BatchNormFlow(num_inputs, 0.1),
         realnvp.Shuffle(num_inputs)
     ]
+    # if i <=2:
+    #     modules += [
+    #         realnvp.CouplingLayer(
+    #             num_inputs, num_hidden, masks[i % len(masks)]),
+    #         realnvp.BatchNormFlow(num_inputs, 0.1),
+    #         realnvp.Shuffle(num_inputs)
+    #     ]
+    # else:
+    #     modules += [
+    #         realnvp.CouplingLayer1(
+    #             num_inputs, num_hidden, masks[i % len(masks)]),
+    #         realnvp.BatchNormFlow(num_inputs, 0.1),
+    #     ]
 
 model = realnvp.FlowSequential(device, *modules)
 
