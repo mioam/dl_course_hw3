@@ -112,11 +112,13 @@ class CouplingLayer(nn.Module):
         # m = mask.sum()
         self.scale_net = nn.Sequential(
             nn.Linear(num_inputs,num_hidden),
+            nn.Dropout(),
             s_act,
             nn.Linear(num_hidden,num_inputs),
             )
         self.translate_net = nn.Sequential(
             nn.Linear(num_inputs,num_hidden),
+            nn.Dropout(),
             t_act,
             nn.Linear(num_hidden,num_inputs),
             )
