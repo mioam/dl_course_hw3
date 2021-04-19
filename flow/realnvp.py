@@ -208,7 +208,10 @@ class FlowSequential(nn.Sequential):
         # TODO complete code here
         # return a the log probability with shape (batch size, 1)
         #######################################################
-        return self.prior.log_prob(u) - log_jacob
+        batchsize = u.shape[0]
+        log_prob = self.prior.log_prob(u.reshape(-1))
+        log_prob = log_prob.reshape(batchsize,-1)
+        return log_prob.sum(-1, keepdim=True) - log_jacob
 
     def sample(self, num_samples=None, noise=None):
         if noise is None:
