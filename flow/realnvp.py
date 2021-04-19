@@ -114,6 +114,7 @@ class CouplingLayer(nn.Module):
             nn.Linear(num_inputs,num_hidden),
             s_act,
             nn.Linear(num_hidden,num_inputs),
+            s_act,
             )
         self.translate_net = nn.Sequential(
             nn.Linear(num_inputs,num_hidden),
@@ -132,11 +133,12 @@ class CouplingLayer(nn.Module):
             # TODO complete code here;  x - > z
             # return z = f(x) and logdet, z has the same shape with x, logdet has the shape (batch size, 1)
             ###########################################
-            s = self.scale_net(masked_inputs)
+            s = 1 #self.scale_net(masked_inputs)
             t = self.translate_net(masked_inputs)
             z = inputs * (1 - mask)
             z = (z - t) * s
             z = z + masked_inputs
+            return z,0
             return z, -torch.log(s).sum(-1, keepdim=True)
 
         else:
@@ -144,11 +146,12 @@ class CouplingLayer(nn.Module):
             # TODO complete code here; z - > x
             # return x = f^-1(z) and logdet, x has the same shape with z, logdet has the shape (batch size, 1)
             ###########################################
-            s = self.scale_net(masked_inputs)
+            s = 1 #self.scale_net(masked_inputs)
             t = self.translate_net(masked_inputs)
             z = inputs * (1 - mask)
             z = z / s + t
             z = z + masked_inputs
+            return z, 0
             return z, torch.log(s).sum(-1, keepdim=True)
 
 class FlowSequential(nn.Sequential):
