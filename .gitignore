@@ -4,3 +4,4 @@ MNIST/
 *.png
 *.npy
 *.pt
+*__pycache__
