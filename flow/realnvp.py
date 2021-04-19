@@ -114,7 +114,6 @@ class CouplingLayer(nn.Module):
             nn.Linear(num_inputs,num_hidden),
             s_act,
             nn.Linear(num_hidden,num_inputs),
-            s_act,
             )
         self.translate_net = nn.Sequential(
             nn.Linear(num_inputs,num_hidden),
@@ -133,26 +132,24 @@ class CouplingLayer(nn.Module):
             # TODO complete code here;  x - > z
             # return z = f(x) and logdet, z has the same shape with x, logdet has the shape (batch size, 1)
             ###########################################
-            s = 1 #self.scale_net(masked_inputs)
+            s = self.scale_net(masked_inputs)
             t = self.translate_net(masked_inputs)
-            z = inputs * (1 - mask)
-            z = (z - t) * s
+            z = (inputs - t) * torch.exp(s) * (1 - mask)
             z = z + masked_inputs
-            return z,0
-            return z, -torch.log(s).sum(-1, keepdim=True)
+            # return z,0
+            return z, (s*(1-mask)).sum(1, keepdim=True)
 
         else:
             #############################################
             # TODO complete code here; z - > x
             # return x = f^-1(z) and logdet, x has the same shape with z, logdet has the shape (batch size, 1)
             ###########################################
-            s = 1 #self.scale_net(masked_inputs)
+            s = self.scale_net(masked_inputs)
             t = self.translate_net(masked_inputs)
-            z = inputs * (1 - mask)
-            z = z / s + t
+            z = (inputs * torch.exp(-s) + t)  * (1 - mask)
             z = z + masked_inputs
-            return z, 0
-            return z, torch.log(s).sum(-1, keepdim=True)
+            # return z, 0
+            return z, -(s*(1-mask)).sum(1, keepdim=True)
 
 class FlowSequential(nn.Sequential):
     """ A sequential container for flows.
@@ -214,7 +211,7 @@ class FlowSequential(nn.Sequential):
         batchsize = u.shape[0]
         log_prob = self.prior.log_prob(u.reshape(-1))
         log_prob = log_prob.reshape(batchsize,-1)
-        return log_prob.sum(-1, keepdim=True) - log_jacob
+        return log_prob.sum(-1, keepdim=True) + log_jacob
 
     def sample(self, num_samples=None, noise=None):
         if noise is None:
