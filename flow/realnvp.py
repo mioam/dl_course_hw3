@@ -83,13 +83,13 @@ class Shuffle(nn.Module):
             # TODO complete code here;  x - > z
             # return z = f(x) and logdet, z has the same shape with x, logdet has the shape (batch size, 1)
             #############################################
-            return inputs[:,self.perm], 0
+            return inputs[:,self.perm], torch.zeros((inputs.shape[0],1))
         else:
             #############################################
             # TODO complete code here; z - > x
             # return x = f^-1(z) and logdet, x has the same shape with z, logdet has the shape (batch size, 1)
             #############################################
-            return inputs[:,self.inv_perm], 0
+            return inputs[:,self.inv_perm], torch.zeros((inputs.shape[0],1))
 
 class CouplingLayer(nn.Module):
     """ An implementation of a coupling layer
