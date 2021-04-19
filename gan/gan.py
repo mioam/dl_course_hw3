@@ -203,10 +203,11 @@ def main(args):
     else:
         assert args.load_path is not None
         checkpoint = torch.load(args.load_path, map_location=device)
-        discriminator.load_state_dict(checkpoint['d'])
-        generator.load_state_dict(checkpoint['g'])
-        d_optimizer.load_state_dict(checkpoint['d_optimizer'])
-        g_optimizer.load_state_dict(checkpoint['g_optimizer'])
+        generator = checkpoint
+        # discriminator.load_state_dict(checkpoint['d'])
+        # generator.load_state_dict(checkpoint['g'])
+        # d_optimizer.load_state_dict(checkpoint['d_optimizer'])
+        # g_optimizer.load_state_dict(checkpoint['g_optimizer'])
         # Generate samples for evaluation.
         samples = generate_samples(generator, 1000, device)
         torch.save(samples, "gan_generated_samples.pt")
