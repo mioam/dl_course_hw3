@@ -50,17 +50,19 @@ class Trainer(object):
         :return: the resulting negative sample
         '''
         # TODO: implement langevin dynamics over the model
-        opt = torch.optim.SGD([x,],lr=self.langevin_lr,)
-        Normal = torch.distributions.normal.Normal(0,self.langevin_lr)
+        y = torch.zeros_like(x)
+        y.requires_grad_()
+        opt = torch.optim.SGD([y,],lr=self.langevin_lr,)
+        Normal = torch.distributions.normal.Normal(0,self.langevin_noise_std)
         for i in range(self.langevin_k):
             opt.zero_grad()
-            E = -self.model(x)
+            E = -self.model(x+y)
             loss = E.sum()
             loss.backward()
             opt.step()
             x += Normal.sample(x.shape).to(self.device)
-        self.langevin_lr *= 0.99
-        return x
+        y.requires_grad_(False)
+        return x + y
 
     def init_negative(self, batch_size):
         '''
@@ -87,7 +89,7 @@ class Trainer(object):
         neg_E = -self.model(self.x_neg)
         loss = pos_E - neg_E + self.l2_coef * (pos_E ** 2 + neg_E ** 2)
         loss = loss.mean()
-
+        # print(pos_E.mean().item(),neg_E.mean().item())
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
@@ -103,8 +105,24 @@ class Trainer(object):
                      ``0'' positions indicate ground truth pixels, which should not be changed during inpainting.
         :return: recovered images with the same size as ``corrupted''.
         '''
-        recovered = corrupted
-        return recovered
+        x = torch.clone(corrupted)
+        y = torch.zeros_like(x)
+        y.requires_grad_()
+        Normal = torch.distributions.normal.Normal(0,self.langevin_noise_std)
+        opt = torch.optim.SGD([y,],lr=self.langevin_lr)
+        for i in range(100):
+            E = -self.model(x + y * mask)
+            loss = E.sum()
+
+            opt.zero_grad()
+            loss.backward()
+            opt.step()
+            x += Normal.sample(x.shape).to(self.device)
+            
+            # print(loss.item())
+        
+        y.requires_grad_(False)
+        return x + y * mask
 
     def save(self, save_path):
         save_dict = {'model': self.model.state_dict(),

@@ -35,8 +35,7 @@ def main(args):
                 # TODO: add logging, saving, or anything else you believe useful
                 loss += trainer.train_step(data.to(device))
             print('epoch: %d, loss: %f'%(epoch,loss/len(dataloader)))
-            if epoch % 10 == 0:
-                torch.save(model, args.model_dir + "/checkpoint{}.pt".format(epoch + 1))
+            trainer.save("./model/checkpoint{}.pt".format(epoch + 1))
 
     else:
         # Play around with a trained model.
@@ -61,7 +60,7 @@ def main(args):
             torchvision.utils.save_image(recovered_img.view(args.batch_size, 1, 28, 28), "recovered_%d.png"%cnt, nrow=16)
             cnt = cnt + 1
 
-            mse = np.mean((data.numpy() - recovered_img) ** 2, axis=(1, 2, 3))
+            mse = np.mean((data.numpy() - recovered_img.cpu().numpy()) ** 2, axis=(1, 2, 3))
             all_mse.extend(mse.tolist())
             mse = np.mean((data.numpy() - broken_data.cpu().numpy()) ** 2, axis=(1, 2, 3))
             initial_mse.extend(mse.tolist())
