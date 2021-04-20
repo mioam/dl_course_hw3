@@ -83,7 +83,7 @@ class Trainer(object):
         
         for i in range(batch_size):
             if mask[i] and len(self.replay_buffer):
-                id = random.randint(len(self.replay_buffer))
+                id = random.randint(0,len(self.replay_buffer)-1)
                 x[i] = self.replay_buffer[id]
                 # x[i] = self.replay_buffer.pop()
         return x.to(self.device)
