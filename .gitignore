@@ -5,3 +5,4 @@ MNIST/
 *.npy
 *.pt
 *__pycache__
+report*

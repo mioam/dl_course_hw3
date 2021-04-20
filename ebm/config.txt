@@ -1,2 +1,2 @@
 python main.py --l2_coef 1 --lr 0.0001 --langevin_lr 10 --langevin_noise_std 0.005 --langevin_k 60 --num_epochs 50
-python main.py --play      --lr 0.0001 --langevin_lr 10 --langevin_noise_std 0.005 --langevin_k 100
+python main.py --play      --lr 0.0001 --langevin_lr 10 --langevin_noise_std 0.0001 --langevin_k 100

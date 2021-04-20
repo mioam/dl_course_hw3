@@ -35,7 +35,8 @@ def main(args):
                 # TODO: add logging, saving, or anything else you believe useful
                 loss += trainer.train_step(data.to(device))
             print('epoch: %d, loss: %f'%(epoch,loss/len(dataloader)))
-            trainer.save("./model/checkpoint{}.pt".format(epoch + 1))
+            if epoch % 10 == 9:
+                trainer.save("./model/checkpoint{}.pt".format(epoch + 1))
 
     else:
         # Play around with a trained model.

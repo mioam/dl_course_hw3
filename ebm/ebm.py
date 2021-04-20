@@ -130,7 +130,7 @@ class Trainer(object):
     def save(self, save_path):
         save_dict = {'model': self.model.state_dict(),
                      'optimizer': self.optimizer.state_dict(),
-                     'replay_buffer': self.replay_buffer,
+                    #  'replay_buffer': self.replay_buffer,
                      }
         torch.save(save_dict, save_path)
 
