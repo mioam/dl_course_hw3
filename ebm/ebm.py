@@ -56,11 +56,14 @@ class Trainer(object):
         opt = torch.optim.SGD([y,],lr=self.langevin_lr,)
         Normal = torch.distributions.normal.Normal(0,self.langevin_noise_std)
         for i in range(self.langevin_k):
-            opt.zero_grad()
+            y.requires_grad_()
             E = -self.model(x+y)
             loss = E.sum()
+            opt.zero_grad()
             loss.backward()
             opt.step()
+            y.requires_grad_(False)
+
             x += Normal.sample(x.shape).to(self.device)
             x -= torch.clamp(x+y-1,min=0)
             x += torch.clamp(-(x+y),min=0)
