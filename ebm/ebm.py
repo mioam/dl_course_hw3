@@ -3,6 +3,7 @@ from torch._C import device
 import torch.nn as nn
 import numpy as np
 from collections import deque
+import random
 
 
 class MlpBackbone(nn.Module):
@@ -77,7 +78,9 @@ class Trainer(object):
         
         for i in range(batch_size):
             if mask[i] and len(self.replay_buffer):
-                x[i] = self.replay_buffer.popleft()
+                # id = random.randint(len(self.replay_buffer))
+                # x[i] = self.replay_buffer[id]
+                x[i] = self.replay_buffer.pop()
         return x.to(self.device)
 
     def train_step(self, batch_x: torch.Tensor):
