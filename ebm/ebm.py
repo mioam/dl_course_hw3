@@ -62,6 +62,8 @@ class Trainer(object):
             loss.backward()
             opt.step()
             x += Normal.sample(x.shape).to(self.device)
+            x -= torch.clamp(x+y-1,min=0)
+            x += torch.clamp(-(x+y),min=0)
         y.requires_grad_(False)
         return x + y
 
@@ -78,9 +80,9 @@ class Trainer(object):
         
         for i in range(batch_size):
             if mask[i] and len(self.replay_buffer):
-                # id = random.randint(len(self.replay_buffer))
-                # x[i] = self.replay_buffer[id]
-                x[i] = self.replay_buffer.pop()
+                id = random.randint(len(self.replay_buffer))
+                x[i] = self.replay_buffer[id]
+                # x[i] = self.replay_buffer.pop()
         return x.to(self.device)
 
     def train_step(self, batch_x: torch.Tensor):
@@ -110,18 +112,22 @@ class Trainer(object):
         '''
         x = torch.clone(corrupted)
         y = torch.zeros_like(x)
-        y.requires_grad_()
+
         Normal = torch.distributions.normal.Normal(0,self.langevin_noise_std)
         opt = torch.optim.SGD([y,],lr=self.langevin_lr)
         for i in range(100):
+            y.requires_grad_()
             E = -self.model(x + y * mask)
             loss = E.sum()
 
             opt.zero_grad()
             loss.backward()
             opt.step()
+            y.requires_grad_(False)
             x += Normal.sample(x.shape).to(self.device)
             
+            x -= torch.clamp(x+y-1,min=0)
+            x += torch.clamp(-(x+y),min=0)
             # print(loss.item())
         
         y.requires_grad_(False)
