@@ -123,7 +123,7 @@ class CouplingLayer(nn.Module):
             nn.Linear(num_hidden,num_inputs),
             )
         self.translate_net = nn.Sequential(
-            nn.Linear(num_hidden,num_hidden),
+            nn.Linear(num_inputs,num_hidden),
             nn.BatchNorm1d(num_hidden),
             t_act,
             nn.Linear(num_hidden,num_hidden),
