@@ -1,4 +1,5 @@
 import torch
+from torch._C import device
 import torch.nn as nn
 import numpy as np
 from collections import deque
@@ -49,6 +50,16 @@ class Trainer(object):
         :return: the resulting negative sample
         '''
         # TODO: implement langevin dynamics over the model
+        opt = torch.optim.SGD([x,],lr=self.langevin_lr,)
+        Normal = torch.distributions.normal.Normal(0,self.langevin_lr)
+        for i in range(self.langevin_k):
+            opt.zero_grad()
+            E = -self.model(x)
+            loss = E.sum()
+            loss.backward()
+            opt.step()
+            x += Normal.sample(x.shape).to(self.device)
+        self.langevin_lr *= 0.99
         return x
 
     def init_negative(self, batch_size):
@@ -58,14 +69,24 @@ class Trainer(object):
         '''
         # TODO: initialize negative samples here.
         #  Sample from random noise with some probability; sample from self.replay_buffer otherwise.
-        return x
+        prob = torch.rand(batch_size)
+        mask = prob<=self.replay_p
+        x = torch.rand((batch_size,1,28,28))
+        
+        for i in range(batch_size):
+            if mask[i] and len(self.replay_buffer):
+                x[i] = self.replay_buffer.popleft()
+        return x.to(self.device)
 
     def train_step(self, batch_x: torch.Tensor):
         self.x_pos = batch_x
         self.x_neg_init = x_neg_init = self.init_negative(batch_x.shape[0])
         self.x_neg = x_neg = self.langevin_dynamic(x_neg_init)
         # TODO: write training objective here.
-        loss = 0  # This is just a placeholder.
+        pos_E = -self.model(self.x_pos)
+        neg_E = -self.model(self.x_neg)
+        loss = pos_E - neg_E + self.l2_coef * (pos_E ** 2 + neg_E ** 2)
+        loss = loss.mean()
 
         self.optimizer.zero_grad()
         loss.backward()
@@ -73,7 +94,7 @@ class Trainer(object):
         # Fill replay buffer
         self.replay_buffer.extend([x_neg[i] for i in range(x_neg.shape[0])])
         # TODO: you may return anything you like for debugging
-        return
+        return loss.item()
 
     def inpainting(self, corrupted: torch.Tensor, mask):
         '''

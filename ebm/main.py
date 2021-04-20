@@ -4,6 +4,7 @@ import numpy as np
 from torch.utils.data import DataLoader
 from torchvision.datasets import MNIST
 from torchvision import transforms
+import torchvision
 from ebm import MlpBackbone, Trainer
 
 
@@ -29,16 +30,21 @@ def main(args):
     if not args.play:
         # Training.
         for epoch in range(args.num_epochs):
+            loss = 0
             for data, label in dataloader:
                 # TODO: add logging, saving, or anything else you believe useful
-                # trainer.train_step(data.to(device))
-                pass
+                loss += trainer.train_step(data.to(device))
+            print('epoch: %d, loss: %f'%(epoch,loss/len(dataloader)))
+            if epoch % 10 == 0:
+                torch.save(model, args.model_dir + "/checkpoint{}.pt".format(epoch + 1))
+
     else:
         # Play around with a trained model.
         assert args.load_dir is not None, "You must specify load_dir."
         trainer.load(args.load_dir)
         all_mse = []
         initial_mse = []
+        cnt = 0
         for data, label in dataloader:
             broken_data = torch.clone(data)
             # Corrupt the rows 0, 2, 4, ....
@@ -50,6 +56,11 @@ def main(args):
             broken_data = torch.clip(broken_data, 0., 1.)
             # TODO: just an example. You may add more visualization or anything else.
             recovered_img = trainer.inpainting(broken_data.to(device), mask)
+
+            torchvision.utils.save_image(broken_data.view(args.batch_size, 1, 28, 28), "broken_%d.png"%cnt, nrow=16)
+            torchvision.utils.save_image(recovered_img.view(args.batch_size, 1, 28, 28), "recovered_%d.png"%cnt, nrow=16)
+            cnt = cnt + 1
+
             mse = np.mean((data.numpy() - recovered_img) ** 2, axis=(1, 2, 3))
             all_mse.extend(mse.tolist())
             mse = np.mean((data.numpy() - broken_data.cpu().numpy()) ** 2, axis=(1, 2, 3))
